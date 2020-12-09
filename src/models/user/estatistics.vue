@@ -1,9 +1,43 @@
 <template>
 <div>
-  <button class="btn btn-outline-secondary" v-on:click="exportPDF()" type="button">Generar PDF</button>
     <div class="text-center">
-        <line-chart :data="dataChart"></line-chart>
+    <div></div>
+      <h2>Kilometros recorridos</h2>
+        <bar-chart :data="dataChart"></bar-chart>
     </div>
+    <table class="table">
+    <thead>
+                        <tr>
+                            <th scope="col">Filtro</th>
+                            <th scope="col">Valor Maximo</th>
+                            <th scope="col">Valor Minimo</th>
+                            <th scope="col">Rango a Obtener</th>
+                        </tr>
+                    </thead>
+    <tbody>
+    <tr v-for="(invoice_product, k) in velocidad" :key="k">
+    <td scope="row" class="trashIconContainer">
+        <i class="far fa-trash-alt" @click="deleteRow(k, invoice_product)"></i>
+    </td>
+    <td>
+        <th scope="col">Velocidad</th>
+        <th> </th>
+    </td>
+    <td>
+        <input class="form-control text-right" type="number" min="0" step="10" v-model="invoice_product.product_price" @change="calculateLineTotal(invoice_product)"
+        />
+    </td>
+    <td>
+        <input class="form-control text-right" type="number" min="0" step="10" v-model="invoice_product.product_qty" @change="calculateLineTotal(invoice_product)"
+        />
+    </td>
+    <td>
+        <input readonly class="form-control text-right" type="number" min="0" step=".01" v-model="invoice_product.line_total" />
+    </td>
+</tr>
+</tbody>
+</table>
+    <button class="btn btn-outline-secondary" v-on:click="exportPDF()" type="button">Generar PDF</button>
 </div>
 </template>
 
@@ -28,7 +62,14 @@
                   {title: 'Accidentalidad', description: 'Baja'},
                   {title: 'Manillas Activas', description: '84'},
                   {title: 'Manillas Registradas', description: '110'}
-                ]
+                ],
+                velocidad: [{
+                    product_no: '',
+                    product_name: '',
+                    product_price: '',
+                    product_qty: '',
+                    line_total: 0
+                 }]
             }
         },
         created: function(){
@@ -46,7 +87,8 @@
                 console.log(payload[0]['ppm'])
                 var resultData = {}
                 for(var i = 0; i < payload.length; i++){
-                    resultData[i] = payload[i].ppm
+                    resultData[payload[i].fecha] = payload[i].ppm
+                    console.log(payload[i].fecha)
                     if(i+1 == payload.length){
                       this.dataChart = resultData
                       console.log(this.dataChart)
@@ -66,12 +108,44 @@
             {title: "Caracteristica", dataKey: "title"},
             {title: "Descripcion", dataKey: "description"}
           ];
+          var secondColumns = [
+            {title: "Reporte por manillas", dataKey: this.dataChart.keys},
+          ];
           var doc = new jsPDF('p', 'pt');
           doc.text('Reporte de observacion', 40, 40);
           doc.autoTable(columns, this.exportData, {
             margin: {top: 60},
           });
+          doc.autoTable(secondColumns, this.resultData, {
+            margin: {top: 60},
+          });
           doc.save('Reporte.pdf');
+        },
+        calculateLineTotal(invoice_product) {
+            var total = parseFloat(invoice_product.product_price) * parseFloat(invoice_product.product_qty);
+            if (!isNaN(total)) {
+                invoice_product.line_total = total.toFixed(2);
+            }
+            this.calculateTotal();
+        },
+         calculateTotal() {
+            var subtotal, total;
+            subtotal = this.velocidad.reduce(function (sum, product) {
+                var lineTotal = parseFloat(product.line_total);
+                if (!isNaN(lineTotal)) {
+                    return sum + lineTotal;
+                }
+            }, 0);
+
+            this.invoice_subtotal = subtotal.toFixed(2);
+
+            total = (subtotal * (this.invoice_tax / 100)) + subtotal;
+            total = parseFloat(total);
+            if (!isNaN(total)) {
+                this.invoice_total = total.toFixed(2);
+            } else {
+                this.invoice_total = '0.00'
+            }
         }
         }
     }

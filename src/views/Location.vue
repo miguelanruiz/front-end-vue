@@ -1,6 +1,6 @@
 <template>
 <body>
-      <div class="text-center">
+      <div v-if="display==1" class="text-center">
         <vue-google-heatmap :points="points"
                       :width="1080"
                       :height="500" 
@@ -24,25 +24,8 @@
                 name: "NAMEUSER",
                 n_user :"NAMEACCOUNT",
                 dataChart :  [["Jan", 0], ["Feb", 0], ["Mar", 0], ["Apr", 0], ["May", 0]],
+                display : 0,
                 points: [
-                    {lat: 37.786117, lng:-122.440119},
-                    {lat: 37.786564, lng:-122.440209},
-                    {lat: 37.786905, lng:-122.440270},
-                    {lat: 37.786956, lng:-122.440279},
-                    {lat: 37.800224, lng:-122.433520},
-                    {lat: 37.800155, lng:-122.434101},
-                    {lat: 37.800160, lng:-122.434430},
-                    {lat: 37.800378, lng:-122.434527},
-                    {lat: 37.800738, lng:-122.434598},
-                    {lat: 37.800938, lng:-122.434650},
-                    {lat: 37.801024, lng:-122.434889},
-                    {lat: 37.800955, lng:-122.435392},
-                    {lat: 37.800886, lng:-122.435959}
-                  ]
-            }
-        },
-        created: function(){
-            this.points = [
                     {lng: -74.078619, lat:4.646864}, 
                     {lng: -74.078437, lat:4.632535},
                     {lng: -74.078619, lat:4.632535},
@@ -57,12 +40,45 @@
                     {lng: -74.081127, lat:4.626565},
                     {lng: -74.081127, lat:4.626565}
                   ]
+            }
+        },
+        created: function(){
+          console.log("iniciamos")
+          this.info();
+            /*this.points = [
+                    {lng: -74.078619, lat:4.646864}, 
+                    {lng: -74.078437, lat:4.632535},
+                    {lng: -74.078619, lat:4.632535},
+                    {lng: -74.078437, lat:4.632535},
+                    {lng: -74.078619, lat:4.632535},
+                    {lng: -74.078437, lat:4.632535},
+                    {lng: -74.079517, lat:4.626565},
+                    {lng: -74.079517, lat:4.626565},
+                    {lng: -74.079517, lat:4.626565},
+                    {lng: -74.079517, lat:4.626565},
+                    {lng: -74.079517, lat:4.626565},
+                    {lng: -74.081127, lat:4.626565},
+                    {lng: -74.081127, lat:4.626565}
+                  ]*/
+            console.log(this.points)
             this.name = JSON.parse(localStorage.getItem('account_name'))
             /*if(localStorage.getItem('account_name') == null){
               alert("Usted no se encuentra logueado.");
               this.$router.push({path: '/'});
             }*/
-            axios.get('http://deployversion-env.eba-vephy4cj.sa-east-1.elasticbeanstalk.com/api/tools/bracelet/report/developer/n',{
+            
+
+        },
+        methods:{
+          logOut(){
+            
+            localStorage.removeItem('token');
+            localStorage.removeItem('account_name');
+            this.$router.push({path: '/'});
+          },
+          async info(){
+            let newPoints = []
+            await axios.get('http://deployversion-env.eba-vephy4cj.sa-east-1.elasticbeanstalk.com/api/tools/bracelet/report/developer/n',{
                 headers: {
                     'authorization': JSON.parse(localStorage.getItem('token')),
                 }
@@ -71,24 +87,21 @@
                 console.log(payload[0]['ppm'])
                 var resultData = {}
                 for(var i = 0; i < payload.length; i++){
+                    newPoints.push({lng : payload[i].lon, lat : payload[i].lat })
                     resultData[i] = payload[i].ppm
                     if(i+1 == payload.length){
                       this.dataChart = resultData
+                      this.points = newPoints
+                      console.log("salimos")
+                      console.log(this.points)
                       console.log(this.dataChart)
+                      this.display=1
                     }
                 }
             })
-
-          let user = JSON.parse(localStorage.getItem('user'));
-          alert(user.token);
-        },
-        methods:{
-          logOut(){
-            
-            /*localStorage.removeItem('token');
-            localStorage.removeItem('account_name');
-            this.$router.push({path: '/'});*/
+            this.points = newPoints
           }
+
         }
     }
 </script>

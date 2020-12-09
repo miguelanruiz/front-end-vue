@@ -8,6 +8,8 @@ import vSelectMenu from 'v-selectmenu';
 import Chartkick from 'vue-chartkick'
 import Chart from 'chart.js'
 import VueGoogleHeatmap from 'vue-google-heatmap'
+import DataTable from 'v-data-table'
+Vue.use(DataTable)
 
 Vue.use(VueGoogleHeatmap, {
   apiKey: 'AIzaSyA6xit8Ojwb_mv63-xH2AT81WtbvfJVUlQ'

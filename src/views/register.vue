@@ -64,14 +64,16 @@
                     };
                     axios.post("http://deployversion-env.eba-vephy4cj.sa-east-1.elasticbeanstalk.com/api/register/", post).then((result) => {
                         console.log(result.data);
-                        alert(result.data.message)
+                        
                         if(result.data.message == 0){
                             localStorage.setItem('token',JSON.stringify(result.data.token));
                             localStorage.setItem('account_rol',JSON.stringify(this.rol))
                             localStorage.setItem('account_id',JSON.stringify(result.data.id_account))
                             localStorage.setItem('account_mail',JSON.stringify(this.email))
                             this.$router.push({path: '/fillAccount'});
+                            alert("Registro Exitoso.")
                         }
+                        alert("Registro Fallido, intentelo de nuevo.")
                     });
                 }else{
                     alert("Las contraseñas no coinciden")
